@@ -1,6 +1,7 @@
 from tradingview_ta import *
 from tkinter import *
 from tkinter import ttk
+import binanceApi
 
 #macd özellikleri -70 in altında olmaları ve aralarındaki farkın 10 dan az olması
 #rsi özellikleri 35 in altında olması
@@ -43,6 +44,7 @@ def coins(coinname,newTime):
     rsi = False
     stokastik = False
     macd = False
+    order_status = False
 
     print("-"*15)
     print("###",coinname,"###")
@@ -74,6 +76,7 @@ def coins(coinname,newTime):
 
     if rsi == True and stokastik == True and macd == True:
         print("SİNYAL : AL") 
+        order_status = True
         print("Coini şu fiyatta satabilirsiniz : ",sellTime)
         #print("STOP-LOSS : ",stop_loss)
         print("-"*15)
@@ -86,14 +89,21 @@ def coins(coinname,newTime):
 
 #coins(coinname="ETHUSDT")
 
+def process(kriptoPara):
+    if order_status == True:
+        choice = input("İşlem Yapılsın Mı? (y/n)")
+        if choice == "y":
+            binanceApi.buyMarketPrice(cryptoname=kriptoPara)
+
 #### UYGULAMA ARAYÜZ BÖLÜMÜ ####
 
 window = Tk()
 window.geometry("400x400")
 
-btcButton = Button(window,text="BTCUSDT")
+btcButton = Button(window)
 ethButton = Button(window)
 solButton = Button(window)
+walletButton = Button(window)
 
 times = ["5 DAKİKA","15 DAKİKA","30 DAKİKA","1 SAAT","4 SAAT","1 GÜN","1 HAFTA"]
 
@@ -142,7 +152,7 @@ chooseTime.pack(padx=10,
 btcButton.config(text="BITCOIN",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="BTCUSDT"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="BTCTRY"),int(textbox1.get())]
                 )
 
 btcButton.place(x=40,
@@ -151,7 +161,7 @@ btcButton.place(x=40,
 ethButton.config(text="ETHEREUM",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="ETHUSDT"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="ETHTRY"),int(textbox1.get())]
                 )
 
 ethButton.place(x=40,
@@ -160,10 +170,19 @@ ethButton.place(x=40,
 solButton.config(text="SOLANA",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="SOLUSDT"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="SOLTRY"),int(textbox1.get()),binanceApi.wallet]
                 )
 
 solButton.place(x=40,
                 y=200)
+
+walletButton.config(text="wallet",
+                bg="white",
+                fg="black",
+                command=binanceApi.wallet
+                )
+
+walletButton.place(x=300,
+                y=350)
 
 mainloop()
