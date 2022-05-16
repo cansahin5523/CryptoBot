@@ -39,7 +39,7 @@ def coins(coinname,newTime):
     macd_degeri1 = data1["MACD.macd"]
     macd_degeri2 = data1["MACD.signal"]
     high = data1["high"]
-    #low = data1["low"]
+    low = data1["low"]
 
     rsi = False
     stokastik = False
@@ -48,9 +48,9 @@ def coins(coinname,newTime):
 
     print("-"*15)
     print("###",coinname,"###")
-    print("RSI değeri: ",rsi_degeri)
-    print("STOKASTIK değeri : ",stok_degeri)
-    print("MACD değerleri : ",macd_degeri1,macd_degeri2)
+    print("RSI degeri: ",rsi_degeri)
+    print("STOKASTIK degeri : ",stok_degeri)
+    print("MACD degerleri : ",macd_degeri1,macd_degeri2)
     
     macd_diff = macd_degeri1-macd_degeri2
     
@@ -63,38 +63,39 @@ def coins(coinname,newTime):
             if macd_degeri1 <= 70 and macd_degeri2 <= 70 and macd_diff <=10 and macd_diff >= -100:
                 macd = True
       
-    print("RSİ:",rsi,"\nStokastik: ",stokastik,"\nMACD: ",macd)
+    print("RSI:",rsi,"\nStokastik: ",stokastik,"\nMACD: ",macd)
 
     try:
         profit = (high * int(textbox1.get()))/100
         sellTime = high + profit
     except ValueError:
-        print("Boş yerleri doldurun")
+        print("Bos yerleri doldurun")
 
-    #stop_loss_percent =(low * 5)/100
-    #stop_loss = low - stop_loss_percent
+    stop_loss_percent =(low * 5)/100
+    stop_loss = low - stop_loss_percent
 
     if rsi == True and stokastik == True and macd == True:
-        print("SİNYAL : AL") 
+        print("SINYAL : AL") 
         order_status = True
         print("Coini şu fiyatta satabilirsiniz : ",sellTime)
-        #print("STOP-LOSS : ",stop_loss)
+        print("STOP-LOSS : ",stop_loss)
         print("-"*15)
 
     else:
         print("SİNYAL : BEKLEMEDE KAL!")
+        print("STOP-LOSS : ",stop_loss)
 
     print("Hareketli ortalama önerisi : ",signal["RECOMMENDATION"])
     print("-"*15)
 
 #coins(coinname="ETHUSDT")
-
 def process(kriptoPara):
     if order_status == True:
         choice = input("İşlem Yapılsın Mı? (y/n)")
         if choice == "y":
-            binanceApi.buyMarketPrice(cryptoname=kriptoPara)
-
+            binanceApi.buyMarketPrice(cryptoName=kriptoPara)
+        if choice == "n":
+            print("Process has been cancelled!")
 #### UYGULAMA ARAYÜZ BÖLÜMÜ ####
 
 window = Tk()
@@ -152,7 +153,7 @@ chooseTime.pack(padx=10,
 btcButton.config(text="BITCOIN",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="BTCTRY"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="BTCUSDT"),int(textbox1.get())]
                 )
 
 btcButton.place(x=40,
@@ -179,7 +180,7 @@ solButton.place(x=40,
 walletButton.config(text="wallet",
                 bg="white",
                 fg="black",
-                command=binanceApi.wallet
+                command=binanceApi.deneme()
                 )
 
 walletButton.place(x=300,
