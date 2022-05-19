@@ -1,7 +1,9 @@
 from tradingview_ta import *
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 import binanceApi
+from binanceApi import wallet
 
 #macd özellikleri -70 in altında olmaları ve aralarındaki farkın 10 dan az olması
 #rsi özellikleri 35 in altında olması
@@ -35,7 +37,7 @@ def coins(coinname,newTime):
     
     #coinin indikatör değerleri
     rsi_degeri = data1["RSI"]
-    stok_degeri = data1["Stoch.K"]
+    stok_degeri = data1["Stoch.RSI.K"]
     macd_degeri1 = data1["MACD.macd"]
     macd_degeri2 = data1["MACD.signal"]
     high = data1["high"]
@@ -57,11 +59,11 @@ def coins(coinname,newTime):
     if rsi_degeri <= 35:
         rsi = True
 
-        if stok_degeri <= 25:
-            stokastik = True
+    if stok_degeri <= 25:
+        stokastik = True
 
-            if macd_degeri1 <= 70 and macd_degeri2 <= 70 and macd_diff <=10 and macd_diff >= -100:
-                macd = True
+    if macd_degeri1 <= 70 and macd_degeri2 <= 70 and macd_diff <=10 and macd_diff >= -200:
+        macd = True
       
     print("RSI:",rsi,"\nStokastik: ",stokastik,"\nMACD: ",macd)
 
@@ -83,7 +85,6 @@ def coins(coinname,newTime):
 
     else:
         print("SİNYAL : BEKLEMEDE KAL!")
-        print("STOP-LOSS : ",stop_loss)
 
     print("Hareketli ortalama önerisi : ",signal["RECOMMENDATION"])
     print("-"*15)
@@ -93,17 +94,26 @@ def process(kriptoPara):
     if order_status == True:
         choice = input("İşlem Yapılsın Mı? (y/n)")
         if choice == "y":
-            binanceApi.buyMarketPrice(cryptoName=kriptoPara)
+            print("Mevcut Bakiye : ",binanceApi.wallet())
+            tutar = int(input("Ne kadarlık alım yapılsın ? "))
+            if tutar >= 10:
+                binanceApi.buyMarketPrice(cryptoName=kriptoPara,tutar=tutar)
+            else:
+                print("Tutar 10'dan küçük olamaz! ")
         if choice == "n":
             print("Process has been cancelled!")
 #### UYGULAMA ARAYÜZ BÖLÜMÜ ####
 
 window = Tk()
+window.title('Cyrpto Currency Signal Bot')
 window.geometry("400x400")
+window.resizable(width=False, height=False)
 
 btcButton = Button(window)
 ethButton = Button(window)
 solButton = Button(window)
+xrpButton = Button(window)
+xmrButton = Button(window)
 walletButton = Button(window)
 
 times = ["5 DAKİKA","15 DAKİKA","30 DAKİKA","1 SAAT","4 SAAT","1 GÜN","1 HAFTA"]
@@ -115,28 +125,41 @@ def saatsec(buttonCoinName):
 
     if chooseTime.get() == "5 DAKİKA":
         print("INTERVAL_5_MINUTES")
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_5_MINUTES)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_5_MINUTES)
     if chooseTime.get() == "15 DAKİKA":
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_15_MINUTES)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_15_MINUTES)
         print("15 DAKİKA")
     if chooseTime.get() == "30 DAKİKA":
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_30_MINUTES)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_30_MINUTES)
         print("30 DAKİKA")
     if chooseTime.get() == "1 SAAT":
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_1_HOUR)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_1_HOUR)
         print("1 SAAT")
     if chooseTime.get() == "4 SAAT":
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_4_HOURS)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_4_HOURS)
         print("4 SAAT")
     if chooseTime.get() == "1 GÜN":
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_1_DAY)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_1_DAY)
         print("1 GÜN")
     if chooseTime.get() == "1 HAFTA":
-        coins(coinname=buttonCoinName, newTime=Interval.INTERVAL_1_WEEK)
+        coins(coinname=buttonCoinName, 
+            newTime=Interval.INTERVAL_1_WEEK)
         print("1 HAFTA")
     else:
         print("Zaman Seçili Değil!")
-    
+
+assetName = binanceApi.client.get_asset_balance("TRY")["asset"]
+assetValue = binanceApi.client.get_asset_balance("TRY")["free"]
+
+def showWalletBalance():
+    messagebox.showinfo(title="Cüzdan Bakiyesi (Wallet Balance)",
+                        message=[assetName,assetValue])
 
 textbox1 = Entry(window
             )
@@ -153,7 +176,7 @@ chooseTime.pack(padx=10,
 btcButton.config(text="BITCOIN",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="BTCUSDT"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="BTCTRY"),int(textbox1.get())]
                 )
 
 btcButton.place(x=40,
@@ -177,13 +200,38 @@ solButton.config(text="SOLANA",
 solButton.place(x=40,
                 y=200)
 
-walletButton.config(text="wallet",
+xrpButton.config(text="RIPLLE",
                 bg="white",
                 fg="black",
-                command=binanceApi.deneme()
+                command=lambda:[saatsec(buttonCoinName="XRPTRY"),int(textbox1.get()),binanceApi.wallet]
                 )
 
-walletButton.place(x=300,
+xrpButton.place(x=40,
+                y=250)
+
+xmrButton.config(text="MONERO",
+                bg="white",
+                fg="black",
+                command=lambda:[saatsec(buttonCoinName="XMRTRY"),int(textbox1.get()),binanceApi.wallet]
+                )
+
+xmrButton.place(x=40,
+                y=300)
+
+walletButton.config(text="Cüzdanı Görüntüle",
+                bg="white",
+                fg="black",
+                command=showWalletBalance
+                )
+
+walletButton.place(x=250,
                 y=350)
 
+licence = Label(window,
+                text="Owner & Creator : CAN ŞAHİN",
+                font=("Arial",7))
+
+licence.pack()
+licence.place(x=10,
+            y=375)
 mainloop()
