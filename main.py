@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import binanceApi
 from binanceApi import wallet
+import time
 
 #macd özellikleri -70 in altında olmaları ve aralarındaki farkın 10 dan az olması
 #rsi özellikleri 35 in altında olması
@@ -69,15 +70,25 @@ def coins(coinname,newTime):
 
     try:
         profit = (high * int(textbox1.get()))/100
+        if textbox1.get() == '':
+            print("Kar alma miktarı belirtin!")
         sellTime = high + profit
     except ValueError:
         print("Bos yerleri doldurun")
 
-    stop_loss_percent =(low * 5)/100
-    stop_loss = low - stop_loss_percent
+    stop_loss_percent_5 =(low * 5)/100
+    stop_loss_percent_3 =(low * 3)/100
+    stop_loss = low - stop_loss_percent_5
 
     if rsi == True and stokastik == True and macd == True:
         print("SINYAL : AL") 
+        infoBox = messagebox.askquestion(title="Sinyal",
+                    message="AL \nAlım Yapılsın Mı?")
+        if infoBox == "yes":
+            process(kriptoPara=coinname,sellTime=round(sellTime,2))
+        if infoBox == "no":
+            messagebox.showinfo(title="Bilgi",
+                        message="Alım İşlemi İptal Edildi!")
         order_status = True
         print("Coini şu fiyatta satabilirsiniz : ",sellTime)
         print("STOP-LOSS : ",stop_loss)
@@ -85,23 +96,24 @@ def coins(coinname,newTime):
 
     else:
         print("SİNYAL : BEKLEMEDE KAL!")
+        messagebox.showinfo(title="Bilgi",
+                            message="Beklemede Kal!")
 
-    print("Hareketli ortalama önerisi : ",signal["RECOMMENDATION"])
-    print("-"*15)
-
+        print("Hareketli ortalama önerisi : ",signal["RECOMMENDATION"])
+        print("Coini şu fiyatta satabilirsiniz : ",sellTime)
+        print("STOP-LOSS : ",stop_loss)
+        print("-"*15)
+    
 #coins(coinname="ETHUSDT")
-def process(kriptoPara):
-    if order_status == True:
-        choice = input("İşlem Yapılsın Mı? (y/n)")
-        if choice == "y":
-            print("Mevcut Bakiye : ",binanceApi.wallet())
-            tutar = int(input("Ne kadarlık alım yapılsın ? "))
-            if tutar >= 10:
-                binanceApi.buyMarketPrice(cryptoName=kriptoPara,tutar=tutar)
-            else:
-                print("Tutar 10'dan küçük olamaz! ")
-        if choice == "n":
-            print("Process has been cancelled!")
+def process(kriptoPara,sellTime):
+    para = 11
+    binanceApi.buyMarketPrice(tutar=para)
+    time.sleep(5)
+    binanceApi.sellLimitOrder(cryptoName=kriptoPara,satis=para,sellTimeApi=sellTime)
+    messagebox.showinfo(title="Uyarı",
+                    message="Alım İşlemi Başarıyla Tamamlandı!")
+
+
 #### UYGULAMA ARAYÜZ BÖLÜMÜ ####
 
 window = Tk()
@@ -156,6 +168,7 @@ def saatsec(buttonCoinName):
 
 assetName = binanceApi.client.get_asset_balance("TRY")["asset"]
 assetValue = binanceApi.client.get_asset_balance("TRY")["free"]
+assValInt = float(assetValue)
 
 def showWalletBalance():
     messagebox.showinfo(title="Cüzdan Bakiyesi (Wallet Balance)",
@@ -176,7 +189,9 @@ chooseTime.pack(padx=10,
 btcButton.config(text="BITCOIN",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="BTCTRY"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="TRXTRY"),
+                                int(textbox1.get())]
+                                
                 )
 
 btcButton.place(x=40,
@@ -185,7 +200,8 @@ btcButton.place(x=40,
 ethButton.config(text="ETHEREUM",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="ETHTRY"),int(textbox1.get())]
+                command=lambda:[saatsec(buttonCoinName="ETHTRY"),
+                                int(textbox1.get())]
                 )
 
 ethButton.place(x=40,
@@ -194,7 +210,8 @@ ethButton.place(x=40,
 solButton.config(text="SOLANA",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="SOLTRY"),int(textbox1.get()),binanceApi.wallet]
+                command=lambda:[saatsec(buttonCoinName="SOLTRY"),
+                                int(textbox1.get())]
                 )
 
 solButton.place(x=40,
@@ -203,7 +220,8 @@ solButton.place(x=40,
 xrpButton.config(text="RIPLLE",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="XRPTRY"),int(textbox1.get()),binanceApi.wallet]
+                command=lambda:[saatsec(buttonCoinName="XRPTRY"),
+                                int(textbox1.get())]
                 )
 
 xrpButton.place(x=40,
@@ -212,7 +230,8 @@ xrpButton.place(x=40,
 xmrButton.config(text="MONERO",
                 bg="white",
                 fg="black",
-                command=lambda:[saatsec(buttonCoinName="XMRTRY"),int(textbox1.get()),binanceApi.wallet]
+                command=lambda:[saatsec(buttonCoinName="XMRTRY"),
+                                int(textbox1.get())]
                 )
 
 xmrButton.place(x=40,
@@ -234,4 +253,5 @@ licence = Label(window,
 licence.pack()
 licence.place(x=10,
             y=375)
+
 mainloop()
